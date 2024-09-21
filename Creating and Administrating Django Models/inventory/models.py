@@ -22,7 +22,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False)
     is_active = models.BooleanField(default=False)
     stock_status = models.CharField(max_length=3, choices=STOCK_STATUS.items(), default=OUT_OF_STOCK)
-    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
     seasonal_event = models.ForeignKey('SeasonalEvents', on_delete=models.CASCADE)
 
 
@@ -48,7 +48,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     is_active = models.BooleanField(default=False)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', on_delete=models.PROTECT)
 
 
 class SeasonalEvents(models.Model):
@@ -56,3 +56,13 @@ class SeasonalEvents(models.Model):
     name = models.CharField(max_length=100, unique=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
+
+
+class Attribute(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+
+
+class ProductTYpe(models.Model):
+    name = models.CharField(max_length=100)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE)
