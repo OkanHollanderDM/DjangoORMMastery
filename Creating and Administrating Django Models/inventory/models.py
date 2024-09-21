@@ -2,6 +2,11 @@ from django.db import models
 import uuid
 
 
+class ProductType(models.Model):
+    name = models.CharField(max_length=100)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE)
+
+
 class Product(models.Model):
     IN_STOCK = 'IS'
     OUT_OF_STOCK = 'OOS'
@@ -25,6 +30,16 @@ class Product(models.Model):
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
     seasonal_event = models.ForeignKey('SeasonalEvents', on_delete=models.CASCADE)
 
+    product_type = models.ManyToManyField('ProductType', related_name='product_type')
+
+
+class Attribute(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+
+class AttributeValue(models.Model):
+    value = models.CharField(max_length=100)
+    attribute = models.ForeignKey('Attribute', on_delete=models.CASCADE, max_length=100)
 
 class ProductLine(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -32,8 +47,10 @@ class ProductLine(models.Model):
     stock_qty = models.IntegerField(default=0)
     is_active = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
-    weight - models.FloatField(default=0.0)
+    weights = models.FloatField(default=0.0)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
+
+    attribute_value = models.ManyToManyField('AttributeValue', related_name='attribute_value')
 
 
 class ProductImage(models.Model):
@@ -57,12 +74,16 @@ class SeasonalEvents(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
 
+class ProductLine_AttributeValue(models.Model):
+    product_line = models.ForeignKey('ProductLine', on_delete=models.CASCADE)
+    attribute_value = models.ForeignKey('AttributeValue', on_delete=models.CASCADE)
 
-class Attribute(models.Model):
+
+class Product_ProductType(models.Model):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    product_type = models.ForeignKey('ProductType', on_delete=models.CASCADE)
+
+class StockControl(models.Model):
+    stock_qty = models.IntegerField(default=0)
     name = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-
-
-class ProductTYpe(models.Model):
-    name = models.CharField(max_length=100)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE)
+    stock_product = models.OneToOneField('Product', on_delete=models.CASCADE)
