@@ -3,20 +3,32 @@ import uuid
 
 
 class Product(models.Model):
-    pid = models.CharField(max_length=255)
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100)
-    description = models.TextField()
+    IN_STOCK = 'IS'
+    OUT_OF_STOCK = 'OOS'
+    BACKORDERED = 'BO'
+
+    STOCK_STATUS = {
+        IN_STOCK: 'In Stock',
+        OUT_OF_STOCK: 'Out of Stock',
+        BACKORDERED: 'Backorder'
+    }
+
+    pid = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True)
     is_digital = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+    is_active = models.BooleanField(default=False)
+    stock_status = models.CharField(max_length=3, choices=STOCK_STATUS.items(), default=OUT_OF_STOCK)
 
 
 class ProductLine(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    sku = models.UUIDField(default=uuid.uuid4, editable=False)
+    sku = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     stock_qty = models.IntegerField(default=0)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
     weight - models.FloatField(default=0.0)
 
@@ -29,12 +41,12 @@ class ProductImage(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100)
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=False)
 
 
 class SeasonalEvents(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
