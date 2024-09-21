@@ -22,6 +22,8 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True, editable=False)
     is_active = models.BooleanField(default=False)
     stock_status = models.CharField(max_length=3, choices=STOCK_STATUS.items(), default=OUT_OF_STOCK)
+    category = models.ForeignKey('Category', on_delete=models.CASCADE)
+    seasonal_event = models.ForeignKey('SeasonalEvents', on_delete=models.CASCADE)
 
 
 class ProductLine(models.Model):
@@ -31,6 +33,7 @@ class ProductLine(models.Model):
     is_active = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
     weight - models.FloatField(default=0.0)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
 
 
 class ProductImage(models.Model):
@@ -38,6 +41,7 @@ class ProductImage(models.Model):
     alternative_text = models.CharField(max_length=100)
     url = models.ImageField()
     order = models.IntegerField(default=0)
+    product_line = models.ForeignKey('ProductLine', on_delete=models.CASCADE)
 
 
 class Category(models.Model):
@@ -47,6 +51,7 @@ class Category(models.Model):
 
 
 class SeasonalEvents(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
