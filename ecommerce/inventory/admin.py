@@ -1,41 +1,89 @@
 from django.contrib import admin
-from django.urls import reverse
-from django.utils.html import format_html
 
-from .models import Category, Product, ProductType, ProductLine
+from .models import (
+    Attribute,
+    AttributeValue,
+    Category,
+    Product,
+    ProductImage,
+    ProductLine,
+    ProductType,
+    SeasonalEvent,
+)
 
 
-class CategoryAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
-    search_fields = ['name', 'slug']
-    list_display = ['id', 'name', 'slug', 'is_active']
-    list_editable = ['is_active']
-    list_display_links = ['id']
+class ProductImageInline(admin.StackedInline):
+    model = ProductImage
+    extra = 1
 
 
-class ProductLineInLine(admin.StackedInline):
+class ProductLineInline(admin.StackedInline):
     model = ProductLine
+    inlines = [ProductImageInline]
     extra = 1
 
 
 class ProductAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
-    list_display = ['id', 'name', 'category_link', 'is_active', 'is_digital', 'stock_status']
-    list_editable = ['is_active', 'is_digital', 'stock_status']
-    list_display_links = ['id']
-    search_fields = ['name', 'stock_status']
-    list_filter = ['stock_status']
+    inlines = [ProductLineInline]
 
-    def category_link(self, obj):
-        link = reverse('admin:inventory_category_change', args=[obj.category.id])
-        return format_html('<a href="{}">{}</a>', link, obj.category.name)
+    list_display = (
+        "name",
+        "category",
+        "stock_status",
+        "is_active",
+    )
 
-    category_link.short_description = 'Category'
+    list_filter = (
+        "category",
+        "stock_status",
+        "is_active",
+    )
 
-    inlines = [ProductLineInLine]
+    search_fields = ("name",)
 
 
-admin.site.register(Category, CategoryAdmin)
+class SeasonalEventAdmin(admin.ModelAdmin):
+    list_display = ("name", "start_date", "end_date")
+
+
+class AttributeValueInline(admin.TabularInline):
+    model = AttributeValue
+    extra = 1
+
+
+class AttributeAdmin(admin.ModelAdmin):
+    inlines = [AttributeValueInline]
+
+
+class ChildTypeInline(admin.TabularInline):
+    model = ProductType
+    fk_name = "parent"
+    extra = 1
+
+
+class ParentTypeAdmin(admin.ModelAdmin):
+    inlines = [ChildTypeInline]
+
+
+class ChildCategoryInline(admin.TabularInline):
+    model = Category
+    fk_name = "parent"
+    extra = 1
+
+
+class ParentCategoryAdmin(admin.ModelAdmin):
+    inlines = [ChildCategoryInline]
+    list_display = (
+        "name",
+        "parent_name",
+    )
+
+    def parent_name(self, obj):
+        return obj.parent.name if obj.parent else None
+
+
 admin.site.register(Product, ProductAdmin)
-admin.site.register(ProductType)
-
+admin.site.register(SeasonalEvent, SeasonalEventAdmin)
+admin.site.register(Attribute, AttributeAdmin)
+admin.site.register(ProductType, ParentTypeAdmin)
+admin.site.register(Category, ParentCategoryAdmin)
